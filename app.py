@@ -17,6 +17,10 @@ from modules.binomial_last_digits import (
     QUESTION_GENERATORS as BINOMIAL_LAST_DIGITS_GENERATORS,
 )
 
+from modules.binomial_series import (
+    QUESTION_GENERATORS as BINOMIAL_SERIES_GENERATORS,
+)
+
 from utils.answer_checker import (
     check_expression,
     check_integer,
@@ -101,6 +105,21 @@ TOPICS = {
         ],
     },
 
+    "二項式定理－級數": {
+
+        "unit": "排列組合",
+
+        "generators":
+            BINOMIAL_SERIES_GENERATORS,
+
+        "question_names": [
+            "1｜基本組合級數求和",
+            "2｜對稱性求部分偶數項和",
+            "3｜奇數／偶數下標係數和",
+            "4｜帶等比權重的二項式級數",
+        ],
+    },
+
 }
 
 
@@ -132,7 +151,10 @@ def clear_answers():
     keys_to_delete = [
         key
         for key in st.session_state.keys()
-        if key.startswith("answer_")
+        if (
+            key.startswith("answer_")
+            or key.startswith("choice_")
+        )
     ]
 
     for key in keys_to_delete:
@@ -229,6 +251,57 @@ def check_decimal_3(
         )
 
 
+def check_numeric_expression(
+    student_answer,
+    correct_answer,
+):
+    """
+    級數題答案判定。
+
+    接受：
+    2^8-1
+    2**8-1
+    255
+
+    並用 SymPy 做等價判定。
+    """
+
+    try:
+
+        text = str(
+            student_answer
+        ).strip()
+
+        if not text:
+            return False, "請輸入答案"
+
+        text = text.replace(
+            "^",
+            "**",
+        )
+
+        student_expr = sp.sympify(
+            text
+        )
+
+        difference = sp.simplify(
+            student_expr
+            - sp.Integer(correct_answer)
+        )
+
+        return (
+            difference == 0,
+            None,
+        )
+
+    except Exception:
+
+        return (
+            False,
+            "無法辨識你輸入的答案",
+        )
+
+
 # ==================================================
 # Header
 # ==================================================
@@ -249,7 +322,7 @@ st.markdown(
 
 
 # ==================================================
-# 字體大小控制
+# 字體大小
 # ==================================================
 
 font_col_1, font_col_2 = st.columns(
@@ -286,7 +359,7 @@ if selected_font:
 
 
 # ==================================================
-# ★ 動態字體 CSS
+# 動態字體 CSS
 # ==================================================
 
 FONT_SETTINGS = {
@@ -327,10 +400,6 @@ st.markdown(
     f"""
     <style>
 
-    /* ==========================================
-       一般 Markdown 文字
-       ========================================== */
-
     div[data-testid="stMarkdownContainer"] p {{
         font-size: {font["base"]}px !important;
         line-height: 1.75 !important;
@@ -341,11 +410,6 @@ st.markdown(
         line-height: 1.7 !important;
     }}
 
-
-    /* ==========================================
-       標題
-       ========================================== */
-
     div[data-testid="stMarkdownContainer"] h3 {{
         font-size: {font["base"] + 5}px !important;
     }}
@@ -354,29 +418,14 @@ st.markdown(
         font-size: {font["base"] + 3}px !important;
     }}
 
-
-    /* ==========================================
-       Radio / Checkbox 標籤
-       ========================================== */
-
     div[data-testid="stRadio"] label p {{
         font-size: {font["base"]}px !important;
     }}
-
-
-    /* ==========================================
-       Selectbox
-       ========================================== */
 
     div[data-baseweb="select"] > div {{
         font-size: {font["base"]}px !important;
         min-height: 48px;
     }}
-
-
-    /* ==========================================
-       輸入框
-       ========================================== */
 
     div[data-testid="stTextInput"] input {{
         font-size: {font["input"]}px !important;
@@ -384,30 +433,15 @@ st.markdown(
         padding: 10px 14px !important;
     }}
 
-
-    /* ==========================================
-       按鈕
-       ========================================== */
-
     div[data-testid="stButton"] button {{
         font-size: {font["button"]}px !important;
         min-height: 50px !important;
         font-weight: 600 !important;
     }}
 
-
-    /* ==========================================
-       Alert
-       ========================================== */
-
     div[data-testid="stAlert"] p {{
         font-size: {font["base"]}px !important;
     }}
-
-
-    /* ==========================================
-       ★ 數學公式
-       ========================================== */
 
     div[data-testid="stMarkdownContainer"]
     mjx-container[display="true"] {{
@@ -418,17 +452,10 @@ st.markdown(
         padding-bottom: 8px;
     }}
 
-
-    /* Streamlit st.latex */
     div[data-testid="stLatex"] {{
         font-size: {font["math"]}px !important;
         overflow-x: auto !important;
     }}
-
-
-    /* ==========================================
-       手機
-       ========================================== */
 
     @media (max-width: 640px) {{
 
@@ -607,48 +634,89 @@ question_type = question[
 ]
 
 
-if question_type == "expression":
+student_answer = None
 
-    placeholder = (
-        "例如：x^2 + 2xy + y^2"
+
+# ==================================================
+# 四選一
+# ==================================================
+
+if question_type == "multiple_choice":
+
+    choice_key = (
+        f"choice_"
+        f"{st.session_state.topic}_"
+        f"{selected_question}"
     )
 
-elif question_type == "integer":
-
-    placeholder = (
-        "請輸入整數"
+    st.markdown(
+        "### 選擇答案"
     )
 
-elif question_type == "last_digits":
-
-    placeholder = (
-        "請輸入末位數，例如：008"
+    student_answer = st.radio(
+        "答案選項",
+        question["options"],
+        index=None,
+        key=choice_key,
+        format_func=lambda option: (
+            f"${option}$"
+        ),
+        label_visibility="collapsed",
     )
 
-elif question_type == "decimal_3":
 
-    placeholder = (
-        "例如：1.200"
-    )
+# ==================================================
+# 一般輸入
+# ==================================================
 
 else:
 
-    placeholder = (
-        "請輸入答案"
+    if question_type == "expression":
+
+        placeholder = (
+            "例如：x^2 + 2xy + y^2"
+        )
+
+    elif question_type == "integer":
+
+        placeholder = (
+            "請輸入整數"
+        )
+
+    elif question_type == "last_digits":
+
+        placeholder = (
+            "請輸入末位數，例如：008"
+        )
+
+    elif question_type == "decimal_3":
+
+        placeholder = (
+            "例如：1.200"
+        )
+
+    elif question_type == "numeric_expression":
+
+        placeholder = (
+            "例如：2^8-1 或 255"
+        )
+
+    else:
+
+        placeholder = (
+            "請輸入答案"
+        )
+
+    st.markdown(
+        "### 你的答案"
     )
 
-
-st.markdown(
-    "### 你的答案"
-)
-
-
-student_answer = st.text_input(
-    "你的答案",
-    placeholder=placeholder,
-    key=answer_key,
-    label_visibility="collapsed",
-)
+    student_answer = st.text_input(
+        "你的答案",
+        placeholder=placeholder,
+        key=answer_key,
+        label_visibility="collapsed",
+    )
 
 
 # ==================================================
@@ -661,13 +729,32 @@ if st.button(
     use_container_width=True,
 ):
 
-    if not student_answer.strip():
+    # ----------------------------------------------
+    # 空白判定
+    # ----------------------------------------------
 
-        st.warning(
-            "請先輸入答案"
-        )
+    if (
+        student_answer is None
+        or str(student_answer).strip() == ""
+    ):
+
+        if question_type == "multiple_choice":
+
+            st.warning(
+                "請先選擇答案"
+            )
+
+        else:
+
+            st.warning(
+                "請先輸入答案"
+            )
 
     else:
+
+        # ------------------------------------------
+        # 各答案類型
+        # ------------------------------------------
 
         if question_type == "expression":
 
@@ -705,6 +792,24 @@ if st.button(
                 )
             )
 
+        elif question_type == "numeric_expression":
+
+            correct, error = (
+                check_numeric_expression(
+                    student_answer,
+                    question["answer"],
+                )
+            )
+
+        elif question_type == "multiple_choice":
+
+            correct = (
+                student_answer
+                == question["answer"]
+            )
+
+            error = None
+
         else:
 
             correct = False
@@ -712,7 +817,7 @@ if st.button(
 
 
         # ==========================================
-        # 顯示結果
+        # 結果
         # ==========================================
 
         if error:
@@ -738,6 +843,15 @@ if st.button(
             )
 
             if (
+                question_type
+                == "multiple_choice"
+            ):
+
+                st.latex(
+                    question["answer"]
+                )
+
+            elif (
                 "answer_display"
                 in question
             ):
