@@ -13,7 +13,7 @@ def binom(n, k):
 def power_latex(base, exponent):
     """
     次方 LaTeX。
-    負底數強制保留括號。
+    負底數一定保留括號。
     """
 
     if base < 0:
@@ -24,7 +24,7 @@ def power_latex(base, exponent):
 
 def verify_sum(n, indices, signs=None):
     """
-    實際利用 math.comb 驗證組合級數。
+    使用實際組合數驗證級數答案。
     """
 
     if signs is None:
@@ -34,6 +34,50 @@ def verify_sum(n, indices, signs=None):
         sign * math.comb(n, k)
         for k, sign in zip(indices, signs)
     )
+
+
+def make_multiple_choice(correct_label, distractor_labels):
+    """
+    建立四選一。
+
+    防呆：
+    1. 正解一定存在
+    2. 固定四個選項
+    3. 不重複
+    4. 正解位置隨機
+    """
+
+    unique_distractors = []
+
+    for label in distractor_labels:
+
+        if label == correct_label:
+            continue
+
+        if label in unique_distractors:
+            continue
+
+        unique_distractors.append(label)
+
+    if len(unique_distractors) < 3:
+        raise ValueError("干擾選項不足")
+
+    selected_distractors = unique_distractors[:3]
+
+    options = [
+        correct_label,
+        *selected_distractors,
+    ]
+
+    assert len(options) == 4
+    assert len(set(options)) == 4
+    assert options.count(correct_label) == 1
+
+    random.shuffle(options)
+
+    assert correct_label in options
+
+    return options
 
 
 # ==================================================
@@ -51,7 +95,7 @@ def generate_question_1():
 
     # ----------------------------------------------
     # 類型 1
-    # C(n,0)+...+C(n,n)
+    # 完整相加
     # ----------------------------------------------
 
     if series_type == 1:
@@ -63,9 +107,9 @@ def generate_question_1():
             indices,
         )
 
-        expected_answer = 2 ** n
+        expected_value = 2 ** n
 
-        assert actual_answer == expected_answer
+        assert actual_answer == expected_value
 
         series = (
             rf"{binom(n, 0)}"
@@ -74,6 +118,19 @@ def generate_question_1():
             rf"+\cdots"
             rf"+{binom(n, n)}"
         )
+
+        correct_label = (
+            rf"2^{{{n}}}"
+        )
+
+        distractors = [
+            rf"2^{{{n}}}-1",
+            rf"2^{{{n-1}}}",
+            "0",
+            rf"2^{{{n}}}+1",
+            "1",
+            "-1",
+        ]
 
         solution = rf"""
 ### 解析
@@ -98,16 +155,10 @@ $$
 (1+1)^{{{n}}}
 $$
 
-所以
+因此
 
 $$
 \boxed{{2^{{{n}}}}}
-$$
-
-其值為
-
-$$
-\boxed{{{expected_answer}}}
 $$
 """
 
@@ -118,18 +169,20 @@ $$
 
     elif series_type == 2:
 
-        indices = list(range(1, n + 1))
+        indices = list(
+            range(1, n + 1)
+        )
 
         actual_answer = verify_sum(
             n,
             indices,
         )
 
-        expected_answer = (
+        expected_value = (
             2 ** n - 1
         )
 
-        assert actual_answer == expected_answer
+        assert actual_answer == expected_value
 
         series = (
             rf"{binom(n, 1)}"
@@ -139,10 +192,23 @@ $$
             rf"+{binom(n, n)}"
         )
 
+        correct_label = (
+            rf"2^{{{n}}}-1"
+        )
+
+        distractors = [
+            rf"2^{{{n}}}",
+            rf"2^{{{n-1}}}",
+            rf"2^{{{n}}}+1",
+            "0",
+            "1",
+            "-1",
+        ]
+
         solution = rf"""
 ### 解析
 
-完整的組合數級數為：
+完整的組合數級數：
 
 $$
 {binom(n, 0)}
@@ -155,7 +221,7 @@ $$
 2^{{{n}}}
 $$
 
-但本題少了
+但本題從下標 $1$ 開始，少了
 
 $$
 {binom(n, 0)}=1
@@ -164,15 +230,7 @@ $$
 因此原式為
 
 $$
-2^{{{n}}}-1
-$$
-
-所以答案：
-
-$$
 \boxed{{2^{{{n}}}-1}}
-=
-\boxed{{{expected_answer}}}
 $$
 """
 
@@ -183,7 +241,9 @@ $$
 
     elif series_type == 3:
 
-        indices = list(range(n + 1))
+        indices = list(
+            range(n + 1)
+        )
 
         signs = [
             (-1) ** k
@@ -196,9 +256,9 @@ $$
             signs,
         )
 
-        expected_answer = 0
+        expected_value = 0
 
-        assert actual_answer == expected_answer
+        assert actual_answer == expected_value
 
         series = (
             rf"{binom(n, 0)}"
@@ -208,6 +268,16 @@ $$
             rf"+\cdots"
             rf"+(-1)^{{{n}}}{binom(n, n)}"
         )
+
+        correct_label = "0"
+
+        distractors = [
+            "-1",
+            "1",
+            rf"2^{{{n}}}",
+            rf"2^{{{n}}}-1",
+            rf"2^{{{n-1}}}",
+        ]
 
         solution = rf"""
 ### 解析
@@ -233,7 +303,7 @@ $$
 (1-1)^{{{n}}}
 $$
 
-因此
+所以
 
 $$
 \boxed{{0}}
@@ -242,7 +312,7 @@ $$
 
     # ----------------------------------------------
     # 類型 4
-    # 正負相間且從 1 開始
+    # 正負相間，從下標 1 開始
     # ----------------------------------------------
 
     else:
@@ -262,9 +332,9 @@ $$
             signs,
         )
 
-        expected_answer = -1
+        expected_value = -1
 
-        assert actual_answer == expected_answer
+        assert actual_answer == expected_value
 
         series = (
             rf"-{binom(n, 1)}"
@@ -273,6 +343,16 @@ $$
             rf"+\cdots"
             rf"+(-1)^{{{n}}}{binom(n, n)}"
         )
+
+        correct_label = "-1"
+
+        distractors = [
+            "0",
+            "1",
+            rf"2^{{{n}}}",
+            rf"2^{{{n}}}-1",
+            rf"-2^{{{n}}}",
+        ]
 
         solution = rf"""
 ### 解析
@@ -297,7 +377,7 @@ $$
 {binom(n, 0)}=1
 $$
 
-本題少了這一項，因此
+本題少了這個 $1$，因此
 
 $$
 -\binom{{{n}}}{{1}}
@@ -315,8 +395,13 @@ $$
 $$
 """
 
+    options = make_multiple_choice(
+        correct_label,
+        distractors,
+    )
+
     question = rf"""
-求下列式子之值：
+求下列式子之值，請選出正確答案：
 
 $$
 {series}
@@ -324,25 +409,28 @@ $$
 """
 
     return {
-        "type": "numeric_expression",
+        "type": "multiple_choice",
         "question": question,
-        "answer": expected_answer,
+        "answer": correct_label,
+        "options": options,
         "solution": solution,
     }
 
 
 # ==================================================
 # 子題 2
-# 對稱性求部分偶數項和
+# 利用對稱性求部分偶數項和
 # ==================================================
 
 def generate_question_2():
 
     # n ≡ 2 (mod 4)
-    # 中央下標為奇數，不會落入偶數項集合
+    # 保證中央下標 n/2 為奇數
     n = random.choice([
         6, 10, 14, 18
     ])
+
+    assert n % 4 == 2
 
     half_limit = n // 2
 
@@ -355,27 +443,31 @@ def generate_question_2():
     )
 
     # ----------------------------------------------
-    # 防呆驗證
+    # 數學合法性驗證
     # ----------------------------------------------
-
-    assert n % 4 == 2
 
     assert all(
         k % 2 == 0
         for k in indices
     )
 
-    assert n // 2 not in indices
+    assert (
+        n // 2
+        not in indices
+    )
 
     symmetric_indices = [
         n - k
         for k in indices
     ]
 
-    assert len(
-        set(symmetric_indices)
-    ) == len(indices)
+    # 每一項的對稱項唯一
+    assert (
+        len(set(symmetric_indices))
+        == len(indices)
+    )
 
+    # 題目這一半與另一半不可重疊
     assert not (
         set(indices)
         & set(symmetric_indices)
@@ -385,13 +477,14 @@ def generate_question_2():
         range(0, n + 1, 2)
     )
 
+    # 合併後必須剛好是完整偶數下標集合
     assert (
         set(indices)
         | set(symmetric_indices)
     ) == complete_even_indices
 
     # ----------------------------------------------
-    # 實際計算驗證
+    # 實際答案驗證
     # ----------------------------------------------
 
     actual_answer = verify_sum(
@@ -399,14 +492,17 @@ def generate_question_2():
         indices,
     )
 
-    expected_answer = (
+    expected_value = (
         2 ** (n - 2)
     )
 
-    assert actual_answer == expected_answer
+    assert (
+        actual_answer
+        == expected_value
+    )
 
     # ----------------------------------------------
-    # 題目顯示
+    # 題目
     # ----------------------------------------------
 
     series = "+".join(
@@ -414,8 +510,27 @@ def generate_question_2():
         for k in indices
     )
 
+    correct_label = (
+        rf"2^{{{n-2}}}"
+    )
+
+    # 常見錯誤：
+    # 2^(n-1)：忘記題目只有一半
+    # 2^n：直接套完整係數和
+    # 2^(n-3)：又多除一次 2
+    distractors = [
+        rf"2^{{{n-1}}}",
+        rf"2^{{{n}}}",
+        rf"2^{{{n-3}}}",
+    ]
+
+    options = make_multiple_choice(
+        correct_label,
+        distractors,
+    )
+
     # ----------------------------------------------
-    # 對稱配對文字
+    # 配對解析
     # ----------------------------------------------
 
     pair_lines = []
@@ -428,8 +543,10 @@ def generate_question_2():
             rf"{binom(n, n-k)}"
         )
 
-    pairs_latex = r"\qquad ".join(
-        pair_lines
+    pairs_latex = (
+        r"\qquad ".join(
+            pair_lines
+        )
     )
 
     complete_even_series = (
@@ -440,7 +557,7 @@ def generate_question_2():
     )
 
     question = rf"""
-求下列式子之值：
+求下列式子之值，請選出正確答案：
 
 $$
 {series}
@@ -458,15 +575,15 @@ $$
 \binom{{n}}{{n-k}}
 $$
 
-本題可配對為：
+本題中的項可以配對：
 
 $$
 {pairs_latex}
 $$
 
-因此題目中的每一項，都能和另一半的偶數下標項完全配對。
+因此題目中的每一項，都能與另一半的偶數下標項配對。
 
-設原式為 $S$，則
+設原式為 $S$，則：
 
 $$
 2S
@@ -474,37 +591,36 @@ $$
 {complete_even_series}
 $$
 
-完整的偶數下標係數和為
+而完整的偶數下標係數和為：
 
 $$
 2^{{{n}-1}}
 $$
 
-所以
+所以：
 
 $$
 2S=2^{{{n}-1}}
 $$
 
-因此
+兩邊除以 $2$：
 
 $$
 S=2^{{{n}-2}}
 $$
 
-所以答案為
+因此答案為：
 
 $$
 \boxed{{2^{{{n-2}}}}}
-=
-\boxed{{{expected_answer}}}
 $$
 """
 
     return {
-        "type": "numeric_expression",
+        "type": "multiple_choice",
         "question": question,
-        "answer": expected_answer,
+        "answer": correct_label,
+        "options": options,
         "solution": solution,
     }
 
@@ -542,26 +658,54 @@ def generate_question_3():
 
         label = "奇數"
 
+    # ----------------------------------------------
+    # 實際驗證
+    # ----------------------------------------------
+
     actual_answer = verify_sum(
         n,
         indices,
     )
 
-    expected_answer = (
+    expected_value = (
         2 ** (n - 1)
     )
 
-    assert actual_answer == expected_answer
+    assert (
+        actual_answer
+        == expected_value
+    )
 
-    # 顯示完整級數。
-    # 項數不多，直接完整顯示可避免省略號歧義。
+    # ----------------------------------------------
+    # 題目
+    # ----------------------------------------------
+
     series = "+".join(
         binom(n, k)
         for k in indices
     )
 
+    correct_label = (
+        rf"2^{{{n-1}}}"
+    )
+
+    # 常見錯誤：
+    # 2^n：把所有係數都相加
+    # 2^(n-2)：多除一次 2
+    # 0：直接把 (1-1)^n 當答案
+    distractors = [
+        rf"2^{{{n}}}",
+        rf"2^{{{n-2}}}",
+        "0",
+    ]
+
+    options = make_multiple_choice(
+        correct_label,
+        distractors,
+    )
+
     question = rf"""
-求下列式子之值：
+求下列式子之值，請選出正確答案：
 
 $$
 {series}
@@ -573,55 +717,54 @@ $$
 
 設偶數下標係數和為 $E$，奇數下標係數和為 $O$。
 
-由
+由：
 
 $$
 (1+1)^{{{n}}}=2^{{{n}}}
 $$
 
-可得
+得到：
 
 $$
 E+O=2^{{{n}}}
 $$
 
-再由
+再由：
 
 $$
 (1-1)^{{{n}}}=0
 $$
 
-可得
+得到：
 
 $$
 E-O=0
 $$
 
-因此
+因此：
 
 $$
 E=O
 $$
 
-所以
+所以：
 
 $$
 E=O=2^{{{n}-1}}
 $$
 
-本題要求的是完整的{label}下標係數和，因此答案為
+本題要求完整的{label}下標係數和，因此答案為：
 
 $$
 \boxed{{2^{{{n-1}}}}}
-=
-\boxed{{{expected_answer}}}
 $$
 """
 
     return {
-        "type": "numeric_expression",
+        "type": "multiple_choice",
         "question": question,
-        "answer": expected_answer,
+        "answer": correct_label,
+        "options": options,
         "solution": solution,
     }
 
@@ -629,22 +772,26 @@ $$
 # ==================================================
 # 子題 4
 # 帶等比權重的二項式級數
-# 四選一
 # ==================================================
 
 def weighted_term_latex(n, a, k):
     """
-    產生第 k 項的 LaTeX。
-    這裡專門處理負 a 的符號，
-    避免出現 +- 等不自然排版。
+    產生級數第 k 項。
+    專門處理負權重的正負號。
     """
 
-    combination = binom(n, k)
+    combination = binom(
+        n,
+        k,
+    )
 
     if k == 0:
         return combination
 
-    # a > 0
+    # ----------------------------------------------
+    # 正數 a
+    # ----------------------------------------------
+
     if a > 0:
 
         if k == 1:
@@ -659,107 +806,98 @@ def weighted_term_latex(n, a, k):
             if a == 1:
                 factor = ""
             else:
-                factor = rf"{a}^{{{k}}}"
+                factor = (
+                    rf"{a}^{{{k}}}"
+                )
 
-        return factor + combination
+        return (
+            "+"
+            + factor
+            + combination
+        )
 
-    # a < 0
+    # ----------------------------------------------
+    # 負數 a
+    # ----------------------------------------------
+
     abs_a = abs(a)
 
-    sign = -1 if k % 2 == 1 else 1
-
     if k == 1:
-        magnitude = str(abs_a)
+
+        magnitude = str(
+            abs_a
+        )
 
     else:
-        magnitude = rf"{abs_a}^{{{k}}}"
 
-    term = magnitude + combination
+        magnitude = (
+            rf"{abs_a}^{{{k}}}"
+        )
 
-    if sign < 0:
-        return "-" + term
+    if k % 2 == 1:
+        sign = "-"
+    else:
+        sign = "+"
 
-    return "+" + term
+    return (
+        sign
+        + magnitude
+        + combination
+    )
 
 
 def make_weighted_series(n, a):
+    """
+    顯示：
+    C(n,0) + aC(n,1) + a²C(n,2) + ...
+    """
 
-    # 顯示前四項 + ... + 最後一項
-    # n 最小為 4，因此合法。
+    pieces = [
+        binom(n, 0)
+    ]
 
-    first = binom(n, 0)
-
-    pieces = [first]
-
+    # 前面顯示 k=1,2,3
     for k in range(1, 4):
 
-        term = weighted_term_latex(
+        pieces.append(
+            weighted_term_latex(
+                n,
+                a,
+                k,
+            )
+        )
+
+    pieces.append(
+        r"+\cdots"
+    )
+
+    # 最後一項
+    pieces.append(
+        weighted_term_latex(
             n,
             a,
-            k,
+            n,
         )
-
-        if a > 0:
-            pieces.append(
-                "+" + term
-            )
-        else:
-            pieces.append(term)
-
-    pieces.append(r"+\cdots")
-
-    # 最後一項另外處理
-    if a > 0:
-
-        last_factor = (
-            ""
-            if a == 1
-            else rf"{a}^{{{n}}}"
-        )
-
-        last = (
-            "+"
-            + last_factor
-            + binom(n, n)
-        )
-
-    else:
-
-        abs_a = abs(a)
-
-        last_factor = (
-            rf"{abs_a}^{{{n}}}"
-        )
-
-        if n % 2 == 0:
-            last_sign = "+"
-        else:
-            last_sign = "-"
-
-        last = (
-            last_sign
-            + last_factor
-            + binom(n, n)
-        )
-
-    pieces.append(last)
+    )
 
     return "".join(pieces)
 
 
 def generate_distractor_bases(a):
     """
-    根據常見錯誤建立候選底數。
+    子題4常見錯誤。
 
-    正解底數 = 1+a
+    正確底數 = 1+a
     """
 
-    correct_base = 1 + a
+    correct_base = (
+        1 + a
+    )
 
     candidates = [
-        a,              # 忘記 1
-        1 - a,          # 加減號判斷錯誤
-        abs(correct_base),  # 負底數誤變正
+        a,                  # 忘記 1
+        1 - a,              # 1+a 看成 1-a
+        abs(correct_base),  # 負底數變正
         -correct_base,      # 正負號反轉
         a - 1,
         abs(a),
@@ -770,18 +908,17 @@ def generate_distractor_bases(a):
         correct_base - 1,
     ]
 
-    # 去除正解與重複
     result = []
 
-    for value in candidates:
+    for base in candidates:
 
-        if value == correct_base:
+        if base == correct_base:
             continue
 
-        if value in result:
+        if base in result:
             continue
 
-        result.append(value)
+        result.append(base)
 
     return result
 
@@ -800,22 +937,21 @@ def generate_question_4():
             8, 9, 10,
         ])
 
-        correct_base = 1 + a
-
-        # a != -1 已由候選值保證
-        assert correct_base != 0
-
-        distractor_bases = (
-            generate_distractor_bases(a)
+        correct_base = (
+            1 + a
         )
 
-        # 數學上 m^n 可能因偶次方造成
-        # b^n 與 (-b)^n 相同。
-        # 因此不能只檢查字串不同，
-        # 要檢查實際數學值不同。
+        # a=-1 不會被抽到
+        assert correct_base != 0
 
         correct_value = (
             correct_base ** n
+        )
+
+        distractor_bases = (
+            generate_distractor_bases(
+                a
+            )
         )
 
         valid_distractors = []
@@ -824,24 +960,50 @@ def generate_question_4():
             correct_value
         }
 
+        # ------------------------------------------
+        # 防止「看起來不同但數學等價」
+        #
+        # 例如 n 為偶數時：
+        # 2^6 = (-2)^6
+        # 不能同時成為兩個選項
+        # ------------------------------------------
+
         for base in distractor_bases:
 
-            value = base ** n
+            value = (
+                base ** n
+            )
 
             if value in used_values:
                 continue
 
-            used_values.add(value)
+            used_values.add(
+                value
+            )
 
             valid_distractors.append(
                 base
             )
 
-            if len(valid_distractors) == 3:
+            if (
+                len(valid_distractors)
+                == 3
+            ):
                 break
 
         if len(valid_distractors) == 3:
             break
+
+    # ----------------------------------------------
+    # 正確答案
+    # ----------------------------------------------
+
+    correct_label = (
+        power_latex(
+            correct_base,
+            n,
+        )
+    )
 
     # ----------------------------------------------
     # 選項
@@ -852,70 +1014,67 @@ def generate_question_4():
         *valid_distractors,
     ]
 
-    random.shuffle(
-        option_bases
-    )
-
-    options = []
-
-    correct_option = None
-
-    for base in option_bases:
-
-        label = power_latex(
+    option_labels = [
+        power_latex(
             base,
             n,
         )
+        for base in option_bases
+    ]
 
-        option = {
-            "label": label,
-            "base": base,
-            "value": base ** n,
-        }
+    # 字串不可重複
+    assert (
+        len(set(option_labels))
+        == 4
+    )
 
-        options.append(option)
+    # 數學值不可重複
+    option_values = [
+        base ** n
+        for base in option_bases
+    ]
 
-        if base == correct_base:
-            correct_option = label
+    assert (
+        len(set(option_values))
+        == 4
+    )
 
-    assert len(options) == 4
-
-    assert len({
-        option["value"]
-        for option in options
-    }) == 4
-
-    assert sum(
-        option["value"]
-        == correct_value
-        for option in options
-    ) == 1
-
-    # ----------------------------------------------
-    # 級數
-    # ----------------------------------------------
-
-    series = make_weighted_series(
-        n,
-        a,
+    options = (
+        make_multiple_choice(
+            correct_label,
+            [
+                label
+                for label in option_labels
+                if label != correct_label
+            ],
+        )
     )
 
     # ----------------------------------------------
-    # 解析用 a
+    # 題目
     # ----------------------------------------------
+
+    series = (
+        make_weighted_series(
+            n,
+            a,
+        )
+    )
 
     if a > 0:
-        binomial = rf"(1+{a})^{{{n}}}"
-    else:
-        binomial = rf"(1-{abs(a)})^{{{n}}}"
 
-    correct_latex = power_latex(
-        correct_base,
-        n,
-    )
+        binomial_latex = (
+            rf"(1+{a})^{{{n}}}"
+        )
+
+    else:
+
+        binomial_latex = (
+            rf"(1-{abs(a)})^{{{n}}}"
+        )
 
     question = rf"""
-下列級數的值可表示成哪一個選項？
+求下列式子之值，請選出正確答案：
 
 $$
 {series}
@@ -925,7 +1084,7 @@ $$
     solution = rf"""
 ### 解析
 
-二項式定理：
+由二項式定理：
 
 $$
 (1+a)^n
@@ -937,39 +1096,38 @@ $$
 +a^n\binom{{n}}{{n}}
 $$
 
-本題的等比權重為
+觀察本題的等比權重，可得：
 
 $$
 a={a}
 $$
 
-因此原式就是
+因此原式就是：
 
 $$
-{binomial}
+{binomial_latex}
 $$
 
-計算 $1+a$：
+計算括號內：
 
 $$
 1+({a})={correct_base}
 $$
 
-所以原式為
+所以原式為：
 
 $$
-\boxed{{{correct_latex}}}
+\boxed{{{correct_label}}}
 $$
+
+不需要將次方展開成巨大整數。
 """
 
     return {
         "type": "multiple_choice",
         "question": question,
-        "answer": correct_option,
-        "options": [
-            option["label"]
-            for option in options
-        ],
+        "answer": correct_label,
+        "options": options,
         "solution": solution,
     }
 
