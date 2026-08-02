@@ -1,6 +1,13 @@
 import streamlit as st
 import sympy as sp
-from decimal import Decimal, InvalidOperation
+
+from decimal import (
+    Decimal,
+    InvalidOperation,
+)
+
+from pathlib import Path
+
 
 from modules.binomial_basic import (
     QUESTION_GENERATORS as BINOMIAL_BASIC_GENERATORS,
@@ -24,7 +31,39 @@ st.set_page_config(
     page_title="Running Math",
     page_icon="📐",
     layout="centered",
+    initial_sidebar_state="collapsed",
 )
+
+
+# ==================================================
+# CSS
+# ==================================================
+
+def load_css():
+
+    css_path = (
+        Path(__file__).parent
+        / "styles"
+        / "main.css"
+    )
+
+    if css_path.exists():
+
+        with open(
+            css_path,
+            "r",
+            encoding="utf-8",
+        ) as file:
+
+            css = file.read()
+
+        st.markdown(
+            f"<style>{css}</style>",
+            unsafe_allow_html=True,
+        )
+
+
+load_css()
 
 
 # ==================================================
@@ -34,7 +73,12 @@ st.set_page_config(
 TOPICS = {
 
     "二項式定理－基本練習": {
-        "generators": BINOMIAL_BASIC_GENERATORS,
+
+        "unit": "排列組合",
+
+        "generators":
+            BINOMIAL_BASIC_GENERATORS,
+
         "question_names": [
             "1｜二項式完整展開",
             "2｜含分式的二項式展開",
@@ -45,7 +89,12 @@ TOPICS = {
     },
 
     "二項式定理－末位數練習": {
-        "generators": BINOMIAL_LAST_DIGITS_GENERATORS,
+
+        "unit": "排列組合",
+
+        "generators":
+            BINOMIAL_LAST_DIGITS_GENERATORS,
+
         "question_names": [
             "1｜整數冪末位數",
             "2｜接近 1 的小數冪",
@@ -58,6 +107,9 @@ TOPICS = {
 # ==================================================
 # Session State
 # ==================================================
+
+if "font_size" not in st.session_state:
+    st.session_state.font_size = "中"
 
 if "topic" not in st.session_state:
     st.session_state.topic = (
@@ -93,11 +145,9 @@ def new_question():
         st.session_state.topic
     ]
 
-    generators = topic_data[
+    generator = topic_data[
         "generators"
-    ]
-
-    generator = generators[
+    ][
         st.session_state.question_index
     ]
 
@@ -106,16 +156,14 @@ def new_question():
     )
 
 
+# ==================================================
+# 特殊答案判定
+# ==================================================
+
 def check_last_digits(
     student_answer,
     correct_answer,
 ):
-    """
-    末位數答案判定。
-
-    例如標準答案為 008：
-    8、08、008 都接受。
-    """
 
     try:
 
@@ -132,10 +180,8 @@ def check_last_digits(
                 "請輸入非負整數",
             )
 
-        student_value = int(text)
-
         return (
-            student_value
+            int(text)
             == int(correct_answer),
             None,
         )
@@ -152,12 +198,6 @@ def check_decimal_3(
     student_answer,
     correct_answer,
 ):
-    """
-    小數點後第三位答案判定。
-
-    使用 Decimal，
-    避免 binary floating point 問題。
-    """
 
     try:
 
@@ -168,7 +208,9 @@ def check_decimal_3(
         if not text:
             return False, "請輸入答案"
 
-        student_value = Decimal(text)
+        student_value = Decimal(
+            text
+        )
 
         return (
             student_value
@@ -188,26 +230,253 @@ def check_decimal_3(
 
 
 # ==================================================
-# 標題
+# Header
 # ==================================================
 
-st.title("Running Math")
+st.markdown(
+    """
+    <div class="rm-header">
+        <div class="rm-title">
+            📐 Running Math
+        </div>
+        <div class="rm-subtitle">
+            高中數學隨機練習
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
-st.caption("高中數學隨機練習")
 
-st.divider()
+# ==================================================
+# 字體大小控制
+# ==================================================
+
+font_col_1, font_col_2 = st.columns(
+    [3, 2]
+)
+
+
+with font_col_1:
+
+    st.markdown(
+        "**閱讀設定**"
+    )
+
+
+with font_col_2:
+
+    selected_font = st.segmented_control(
+        "字體大小",
+        options=[
+            "小",
+            "中",
+            "大",
+        ],
+        default=st.session_state.font_size,
+        label_visibility="collapsed",
+    )
+
+
+if selected_font:
+
+    st.session_state.font_size = (
+        selected_font
+    )
+
+
+# ==================================================
+# ★ 動態字體 CSS
+# ==================================================
+
+FONT_SETTINGS = {
+
+    "小": {
+        "base": 16,
+        "label": 15,
+        "input": 16,
+        "button": 16,
+        "math": 21,
+    },
+
+    "中": {
+        "base": 20,
+        "label": 18,
+        "input": 19,
+        "button": 18,
+        "math": 27,
+    },
+
+    "大": {
+        "base": 24,
+        "label": 21,
+        "input": 22,
+        "button": 21,
+        "math": 34,
+    },
+
+}
+
+
+font = FONT_SETTINGS[
+    st.session_state.font_size
+]
+
+
+st.markdown(
+    f"""
+    <style>
+
+    /* ==========================================
+       一般 Markdown 文字
+       ========================================== */
+
+    div[data-testid="stMarkdownContainer"] p {{
+        font-size: {font["base"]}px !important;
+        line-height: 1.75 !important;
+    }}
+
+    div[data-testid="stMarkdownContainer"] li {{
+        font-size: {font["base"]}px !important;
+        line-height: 1.7 !important;
+    }}
+
+
+    /* ==========================================
+       標題
+       ========================================== */
+
+    div[data-testid="stMarkdownContainer"] h3 {{
+        font-size: {font["base"] + 5}px !important;
+    }}
+
+    div[data-testid="stMarkdownContainer"] h4 {{
+        font-size: {font["base"] + 3}px !important;
+    }}
+
+
+    /* ==========================================
+       Radio / Checkbox 標籤
+       ========================================== */
+
+    div[data-testid="stRadio"] label p {{
+        font-size: {font["base"]}px !important;
+    }}
+
+
+    /* ==========================================
+       Selectbox
+       ========================================== */
+
+    div[data-baseweb="select"] > div {{
+        font-size: {font["base"]}px !important;
+        min-height: 48px;
+    }}
+
+
+    /* ==========================================
+       輸入框
+       ========================================== */
+
+    div[data-testid="stTextInput"] input {{
+        font-size: {font["input"]}px !important;
+        min-height: 52px !important;
+        padding: 10px 14px !important;
+    }}
+
+
+    /* ==========================================
+       按鈕
+       ========================================== */
+
+    div[data-testid="stButton"] button {{
+        font-size: {font["button"]}px !important;
+        min-height: 50px !important;
+        font-weight: 600 !important;
+    }}
+
+
+    /* ==========================================
+       Alert
+       ========================================== */
+
+    div[data-testid="stAlert"] p {{
+        font-size: {font["base"]}px !important;
+    }}
+
+
+    /* ==========================================
+       ★ 數學公式
+       ========================================== */
+
+    div[data-testid="stMarkdownContainer"]
+    mjx-container[display="true"] {{
+        font-size: {font["math"]}px !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }}
+
+
+    /* Streamlit st.latex */
+    div[data-testid="stLatex"] {{
+        font-size: {font["math"]}px !important;
+        overflow-x: auto !important;
+    }}
+
+
+    /* ==========================================
+       手機
+       ========================================== */
+
+    @media (max-width: 640px) {{
+
+        .block-container {{
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+        }}
+
+        div[data-testid="stMarkdownContainer"]
+        mjx-container[display="true"] {{
+            overflow-x: auto !important;
+        }}
+
+    }}
+
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 
 # ==================================================
 # 單元
 # ==================================================
 
-st.subheader("排列組合")
+current_unit = TOPICS[
+    st.session_state.topic
+]["unit"]
+
+
+st.markdown(
+    f"""
+    <div class="rm-unit-badge">
+        {current_unit}
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 
 # ==================================================
 # 主題
 # ==================================================
+
+st.markdown(
+    "### 選擇練習主題"
+)
+
 
 topic_names = list(
     TOPICS.keys()
@@ -215,11 +484,12 @@ topic_names = list(
 
 
 selected_topic = st.selectbox(
-    "主題",
+    "練習主題",
     topic_names,
     index=topic_names.index(
         st.session_state.topic
     ),
+    label_visibility="collapsed",
 )
 
 
@@ -227,14 +497,16 @@ selected_topic = st.selectbox(
 # 切換主題
 # ==================================================
 
-if selected_topic != st.session_state.topic:
+if (
+    selected_topic
+    != st.session_state.topic
+):
 
     st.session_state.topic = (
         selected_topic
     )
 
     st.session_state.question_index = 0
-
     st.session_state.question = None
 
     clear_answers()
@@ -247,6 +519,11 @@ topic_data = TOPICS[
 ]
 
 
+st.markdown(
+    f"#### {st.session_state.topic}"
+)
+
+
 # ==================================================
 # 題型
 # ==================================================
@@ -257,8 +534,10 @@ question_names = topic_data[
 
 
 selected_question = st.radio(
-    "選擇題型",
-    range(len(question_names)),
+    "題型",
+    range(
+        len(question_names)
+    ),
     format_func=lambda i: (
         question_names[i]
     ),
@@ -284,20 +563,28 @@ if (
 
 
 if st.session_state.question is None:
+
     new_question()
 
 
 question = st.session_state.question
 
 
-st.divider()
-
-
 # ==================================================
-# 題目
+# 題目卡
 # ==================================================
 
-st.markdown("### 題目")
+st.markdown(
+    """
+    <div class="rm-question-card">
+        <div class="rm-question-label">
+            QUESTION
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
 
 st.markdown(
     question["question"]
@@ -328,7 +615,9 @@ if question_type == "expression":
 
 elif question_type == "integer":
 
-    placeholder = "請輸入整數"
+    placeholder = (
+        "請輸入整數"
+    )
 
 elif question_type == "last_digits":
 
@@ -344,13 +633,21 @@ elif question_type == "decimal_3":
 
 else:
 
-    placeholder = "請輸入答案"
+    placeholder = (
+        "請輸入答案"
+    )
+
+
+st.markdown(
+    "### 你的答案"
+)
 
 
 student_answer = st.text_input(
     "你的答案",
     placeholder=placeholder,
     key=answer_key,
+    label_visibility="collapsed",
 )
 
 
@@ -413,13 +710,16 @@ if st.button(
             correct = False
             error = "未知的答案類型"
 
-        # ------------------------------------------
+
+        # ==========================================
         # 顯示結果
-        # ------------------------------------------
+        # ==========================================
 
         if error:
 
-            st.error(error)
+            st.error(
+                error
+            )
 
         elif correct:
 
@@ -450,7 +750,10 @@ if st.button(
                     )
                 )
 
-            elif question_type == "expression":
+            elif (
+                question_type
+                == "expression"
+            ):
 
                 st.latex(
                     sp.latex(
@@ -466,9 +769,10 @@ if st.button(
                     )
                 )
 
-        # ------------------------------------------
-        # 有解析的題目才顯示解析
-        # ------------------------------------------
+
+        # ==========================================
+        # 解析
+        # ==========================================
 
         if (
             not error
@@ -485,6 +789,9 @@ if st.button(
 # ==================================================
 # 再來一題
 # ==================================================
+
+st.write("")
+
 
 if st.button(
     "🔄 再來一題",
