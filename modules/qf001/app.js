@@ -1,4 +1,5 @@
 const conditionsDiv = document.getElementById("conditions");
+const optionsDiv = document.getElementById("options");
 
 const aPositive = Math.random() < 0.5;
 
@@ -30,5 +31,25 @@ ${bText}<br>
 ${cText}
 `;
 
+const labels = ["A", "B", "C", "D", "E"];
+
+for (let i = 0; i < labels.length; i++) {
+
+    const card = document.createElement("div");
+
+    card.className = "option-card";
+
+    card.innerHTML = `
+        <div class="option-title">${labels[i]}</div>
+
+        <canvas
+            width="220"
+            height="180">
+        </canvas>
+    `;
+
+    optionsDiv.appendChild(card);
+}
+
 document.getElementById("result").innerHTML =
-"題目生成成功";
+"選項建立成功";
