@@ -17,7 +17,6 @@ for (let i = 0; i < labels.length; i++) {
 
     card.innerHTML = `
         <div class="option-title">${labels[i]}</div>
-
         <canvas
             id="canvas${i}"
             width="220"
@@ -28,12 +27,9 @@ for (let i = 0; i < labels.length; i++) {
     optionsDiv.appendChild(card);
 }
 
-drawDemoGraph();
+function drawParabola(a, b, c, canvasId) {
 
-function drawDemoGraph() {
-
-    const canvas = document.getElementById("canvas0");
-
+    const canvas = document.getElementById(canvasId);
     const ctx = canvas.getContext("2d");
 
     const width = canvas.width;
@@ -45,6 +41,8 @@ function drawDemoGraph() {
     ctx.beginPath();
     ctx.moveTo(0, height / 2);
     ctx.lineTo(width, height / 2);
+    ctx.strokeStyle = "#888";
+    ctx.lineWidth = 1;
     ctx.stroke();
 
     // y軸
@@ -53,8 +51,7 @@ function drawDemoGraph() {
     ctx.lineTo(width / 2, height);
     ctx.stroke();
 
-    // 畫 y = x² - 2x
-
+    // 拋物線
     ctx.beginPath();
 
     let firstPoint = true;
@@ -63,7 +60,7 @@ function drawDemoGraph() {
 
         const x = (px - width / 2) / 20;
 
-        const y = x * x - 2 * x;
+        const y = a * x * x + b * x + c;
 
         const py = height / 2 - y * 20;
 
@@ -75,9 +72,16 @@ function drawDemoGraph() {
         }
     }
 
+    ctx.strokeStyle = "#1976d2";
     ctx.lineWidth = 3;
     ctx.stroke();
 }
 
+drawParabola(1, -2, 0, "canvas0");
+drawParabola(-1, 2, 0, "canvas1");
+drawParabola(1, 0, 2, "canvas2");
+drawParabola(-1, 0, -2, "canvas3");
+drawParabola(2, 3, -1, "canvas4");
+
 document.getElementById("result").innerHTML =
-"第一條拋物線測試";
+"drawParabola() 測試成功";
