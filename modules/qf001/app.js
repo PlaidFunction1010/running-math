@@ -1,10 +1,18 @@
 const conditionsDiv = document.getElementById("conditions");
 
+const aSign = Math.random() < 0.5 ? ">" : "<";
+
+const bPool = [">", "=", "<"];
+const cPool = [">", "=", "<"];
+
+const bSign = bPool[Math.floor(Math.random() * 3)];
+const cSign = cPool[Math.floor(Math.random() * 3)];
+
 conditionsDiv.innerHTML = `
-a > 0<br>
-b < 0<br>
-c = 0
+a ${aSign} 0<br>
+b ${bSign} 0<br>
+c ${cSign} 0
 `;
 
 document.getElementById("result").innerHTML =
-"QF-001 模組載入成功";
+"題目生成成功";
