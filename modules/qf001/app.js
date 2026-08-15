@@ -38,10 +38,14 @@ function generateQuestion() {
     const cState =
         cStates[Math.floor(Math.random()*3)];
 
-    conditionsDiv.innerHTML = `
-        ${aSign>0?"a > 0":"a < 0"}<br>
-        ${stateToText("b",bState)}<br>
-        ${stateToText("c",cState)}
+    document.getElementById("questionText").innerHTML =
+    `
+    已知二次函數 y=ax²+bx+c，
+    其中
+    ${aSign>0?"a > 0":"a < 0"}、
+    ${stateToText("b",bState)}、
+    ${stateToText("c",cState)}，
+    則下列何者為其圖形？
     `;
 
     const correctGraph =
