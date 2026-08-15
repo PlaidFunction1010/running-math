@@ -166,7 +166,7 @@ function submitAnswer(){
     if(selectedIndex===null){
 
         resultDiv.innerHTML =
-            "請先選擇答案";
+            '<span class="wrong">請先選擇答案</span>';
 
         return;
     }
@@ -174,13 +174,12 @@ function submitAnswer(){
     if(selectedIndex===correctIndex){
 
         resultDiv.innerHTML =
-            "✅ 答對";
+            '<span class="correct">🎉 答對！</span>';
 
     }else{
 
         resultDiv.innerHTML =
-            "❌ 答錯";
-
+            '<span class="wrong">😢 答錯，再觀察一次圖形。</span>';
     }
 }
 
@@ -245,6 +244,7 @@ function drawParabola(a,b,c,canvasId){
         *height;
 
     ctx.strokeStyle="#999";
+    ctx.lineWidth=1;
 
     ctx.beginPath();
     ctx.moveTo(0,zeroY);
