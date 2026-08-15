@@ -100,34 +100,32 @@ function generateQuestion() {
     });
 
     document.getElementById("result").innerHTML =
-        "五圖隨機生成成功";
+        "題目生成成功";
 }
 
 function createGraph(aSign, bState, cState) {
 
     const a =
-        aSign > 0
-            ? randomInt(1, 4)
-            : -randomInt(1, 4);
+        aSign > 0 ? 1 : -1;
 
     let b = 0;
 
     if (bState === "positive") {
-        b = randomInt(1, 5);
+        b = 2;
     }
 
     if (bState === "negative") {
-        b = -randomInt(1, 5);
+        b = -2;
     }
 
     let c = 0;
 
     if (cState === "positive") {
-        c = randomInt(1, 4);
+        c = 2;
     }
 
     if (cState === "negative") {
-        c = -randomInt(1, 4);
+        c = -2;
     }
 
     return {
@@ -158,42 +156,17 @@ function drawParabola(a, b, c, canvasId) {
     const xMin = -5;
     const xMax = 5;
 
-    let yMin = Infinity;
-    let yMax = -Infinity;
+    const yMin = -5;
+    const yMax = 5;
 
-    for (
-        let x = xMin;
-        x <= xMax;
-        x += 0.05
-    ) {
-
-        const y =
-            a * x * x +
-            b * x +
-            c;
-
-        if (y < yMin) {
-            yMin = y;
-        }
-
-        if (y > yMax) {
-            yMax = y;
-        }
-    }
-
-    const padding = 1;
-
-    yMin -= padding;
-    yMax += padding;
+    const zeroX =
+        ((0 - xMin) / (xMax - xMin))
+        * width;
 
     const zeroY =
         height -
         ((0 - yMin) / (yMax - yMin))
         * height;
-
-    const zeroX =
-        ((0 - xMin) / (xMax - xMin))
-        * width;
 
     ctx.strokeStyle = "#999";
     ctx.lineWidth = 1;
@@ -275,14 +248,6 @@ function stateToText(name, state) {
     }
 
     return `${name} = 0`;
-}
-
-function randomInt(min, max) {
-
-    return Math.floor(
-        Math.random() *
-        (max - min + 1)
-    ) + min;
 }
 
 function shuffle(array) {
