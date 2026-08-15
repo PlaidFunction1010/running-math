@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QF-003 一元二次不等式解集</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<a class="home-button" href="../../index.html">
+    ← 回首頁
+</a>
+
+<div class="container">
+
+    <div class="progress-bar">
+        <div class="progress-fill"></div>
+    </div>
+
+    <h1>QF-003</h1>
+
+    <h2>一元二次不等式解集（D＞0 且非完全平方數）</h2>
+
+    <div class="question-box">
+
+        <p id="questionText" class="question-line">
+            載入中...
+        </p>
+
+        <div class="action-area">
+
+            <button id="submitBtn">
+                確認答案
+            </button>
+
+            <button id="nextBtn">
+                下一題
+            </button>
+
+        </div>
+
+    </div>
+
+    <div id="options" class="options-container">
+    </div>
+
+    <div id="result"></div>
+
+</div>
+
+<script src="app.js"></script>
+
+</body>
+</html>
