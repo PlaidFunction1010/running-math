@@ -12,8 +12,11 @@ function generateQuestion() {
     const bStates = ["positive", "zero", "negative"];
     const cStates = ["positive", "zero", "negative"];
 
-    const bState = bStates[Math.floor(Math.random() * 3)];
-    const cState = cStates[Math.floor(Math.random() * 3)];
+    const bState =
+        bStates[Math.floor(Math.random() * 3)];
+
+    const cState =
+        cStates[Math.floor(Math.random() * 3)];
 
     conditionsDiv.innerHTML = `
         ${aSign > 0 ? "a > 0" : "a < 0"}<br>
@@ -21,11 +24,12 @@ function generateQuestion() {
         ${stateToText("c", cState)}
     `;
 
-    const correctGraph = createGraph(
-        aSign,
-        bState,
-        cState
-    );
+    const correctGraph =
+        createGraph(
+            aSign,
+            bState,
+            cState
+        );
 
     const graphs = [];
 
@@ -96,7 +100,7 @@ function generateQuestion() {
     });
 
     document.getElementById("result").innerHTML =
-        "題目生成成功";
+        "五圖隨機生成成功";
 }
 
 function createGraph(aSign, bState, cState) {
@@ -108,21 +112,29 @@ function createGraph(aSign, bState, cState) {
 
     let b = 0;
 
-    if (bState === "positive")
+    if (bState === "positive") {
         b = randomInt(1, 5);
+    }
 
-    if (bState === "negative")
+    if (bState === "negative") {
         b = -randomInt(1, 5);
+    }
 
     let c = 0;
 
-    if (cState === "positive")
+    if (cState === "positive") {
         c = randomInt(1, 4);
+    }
 
-    if (cState === "negative")
+    if (cState === "negative") {
         c = -randomInt(1, 4);
+    }
 
-    return { a, b, c };
+    return {
+        a,
+        b,
+        c
+    };
 }
 
 function drawParabola(a, b, c, canvasId) {
@@ -143,16 +155,57 @@ function drawParabola(a, b, c, canvasId) {
         height
     );
 
-    ctx.beginPath();
-    ctx.moveTo(0, height / 2);
-    ctx.lineTo(width, height / 2);
-    ctx.strokeStyle = "#888";
+    const xMin = -5;
+    const xMax = 5;
+
+    let yMin = Infinity;
+    let yMax = -Infinity;
+
+    for (
+        let x = xMin;
+        x <= xMax;
+        x += 0.05
+    ) {
+
+        const y =
+            a * x * x +
+            b * x +
+            c;
+
+        if (y < yMin) {
+            yMin = y;
+        }
+
+        if (y > yMax) {
+            yMax = y;
+        }
+    }
+
+    const padding = 1;
+
+    yMin -= padding;
+    yMax += padding;
+
+    const zeroY =
+        height -
+        ((0 - yMin) / (yMax - yMin))
+        * height;
+
+    const zeroX =
+        ((0 - xMin) / (xMax - xMin))
+        * width;
+
+    ctx.strokeStyle = "#999";
     ctx.lineWidth = 1;
+
+    ctx.beginPath();
+    ctx.moveTo(0, zeroY);
+    ctx.lineTo(width, zeroY);
     ctx.stroke();
 
     ctx.beginPath();
-    ctx.moveTo(width / 2, 0);
-    ctx.lineTo(width / 2, height);
+    ctx.moveTo(zeroX, 0);
+    ctx.lineTo(zeroX, height);
     ctx.stroke();
 
     ctx.beginPath();
@@ -166,7 +219,9 @@ function drawParabola(a, b, c, canvasId) {
     ) {
 
         const x =
-            (px - width / 2) / 20;
+            xMin +
+            (px / width)
+            * (xMax - xMin);
 
         const y =
             a * x * x +
@@ -174,8 +229,9 @@ function drawParabola(a, b, c, canvasId) {
             c;
 
         const py =
-            height / 2 -
-            y * 20;
+            height -
+            ((y - yMin) / (yMax - yMin))
+            * height;
 
         if (firstPoint) {
 
@@ -197,22 +253,26 @@ function drawParabola(a, b, c, canvasId) {
 
 function flipState(state) {
 
-    if (state === "positive")
+    if (state === "positive") {
         return "negative";
+    }
 
-    if (state === "negative")
+    if (state === "negative") {
         return "positive";
+    }
 
     return "positive";
 }
 
 function stateToText(name, state) {
 
-    if (state === "positive")
+    if (state === "positive") {
         return `${name} > 0`;
+    }
 
-    if (state === "negative")
+    if (state === "negative") {
         return `${name} < 0`;
+    }
 
     return `${name} = 0`;
 }
@@ -242,8 +302,7 @@ function shuffle(array) {
         [
             array[i],
             array[j]
-        ] =
-        [
+        ] = [
             array[j],
             array[i]
         ];
